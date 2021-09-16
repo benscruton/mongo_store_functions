@@ -8,15 +8,31 @@ async function main(){
   const connectionOptions = {useNewUrlParser: true, useUnifiedTopology: true };
   const client = new MongoClient(connectionString, connectionOptions);
 
+  const record = {
+    key: "blarg",
+    func: (x) => {
+      x += 1;
+      x **= 2;
+      return x;
+    },
+    backupFunc: x => (x+1)**2
+  };
+
+  for(let key in record){
+    if(typeof record[key] === "function"){
+      record[key] = record[key].toString();
+    }
+  }
+
   try{
     await client.connect();
     const database = client.db(dbName);
     const testy = database.collection("testy");
-    await testy.updateOne({key: "blarg"}, {$set: {rsp: x => x+1}});
     const obj = await testy.findOne({key: "blarg"});
-    // const func = obj.rsp;
-    // console.log(typeof JSON.parse(`${func}`));
-    console.log(obj);
+    const f1 = eval(obj.func);
+    const f2 = eval(obj.backupFunc);
+    console.log(f1(5));
+    console.log(f2(5));
   }
   catch (e) {
     console.error(e);
